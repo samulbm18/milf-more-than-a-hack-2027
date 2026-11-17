@@ -1,0 +1,63 @@
+{
+ "cfg": {
+  "data": {
+   "window_steps": 150,
+   "folds": 4,
+   "buffer_s": 30,
+   "exclude_public_from_train": true
+  },
+  "mask": {
+   "frac": 0.4,
+   "short_extra": 0.2,
+   "player_dropout": 0.1
+  },
+  "aug": {
+   "flip_y": 0.5,
+   "swap_teams": 0.5,
+   "pos_noise_m": [
+    0.2,
+    0.3
+   ]
+  },
+  "model": {
+   "d_set": 64,
+   "set_layers": 2,
+   "seeds": 4,
+   "d": 128,
+   "layers": 4,
+   "heads": 4,
+   "ff": 256,
+   "dropout": 0.1,
+   "n_sym": 2
+  },
+  "loss": {
+   "sym": 1.0,
+   "ptr": 0.5,
+   "mdn": 0.2,
+   "border": 0.5,
+   "masked_weight": 2.0,
+   "fc_eps": 0.0
+  },
+  "optim": {
+   "lr": 0.0003,
+   "wd": 0.01,
+   "epochs": 40,
+   "warmup_epochs": 2,
+   "batch": 32,
+   "windows_per_epoch": 1000,
+   "amp": "bf16",
+   "eval_every": 2
+  }
+ },
+ "args": {
+  "config": "configs/possnet.yaml",
+  "fold": 1,
+  "seed": 2,
+  "epochs": null,
+  "name": "st1_f1_s2",
+  "overfit": false,
+  "all": false,
+  "steps": "experiments/04_self_training/steps.npz",
+  "fc_eps": 0.0
+ }
+}

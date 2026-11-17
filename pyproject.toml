@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "possession"
+version = "0.1.0"
+requires-python = ">=3.10"
+description = "Frame-level ball possession (H/A/D) from tracking: a network that detects and a football state machine that decides"
+dependencies = ["numpy", "scipy", "pandas", "numba", "pyyaml", "torch"]
+
+[project.optional-dependencies]
+experiments = ["lightgbm", "scikit-learn"]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marcar paradas</title>
+<style>
+:root { --bg:#fbfbfa; --surface:#ffffff; --ink:#1d1d1b; --muted:#5d5d58; --line:#dcdbd5; --accent:#a1393f; --ok:#2e6b4a; }
+@media (prefers-color-scheme: dark) { :root { --bg:#161615; --surface:#1f1f1d; --ink:#ecebe6; --muted:#a6a59e; --line:#3a3935; --accent:#e07a80; --ok:#7fc49b; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, "Segoe UI", sans-serif; }
+main { max-width:1280px; margin:0 auto; padding:16px; display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; }
+@media (max-width:980px) { main { grid-template-columns:1fr; } }
+h1 { font-size:18px; margin:0 0 8px; }
+video { width:100%; background:#000; border-radius:6px; display:block; }
+.bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:10px 0; }
+.read { font-variant-numeric:tabular-nums; font-size:20px; font-weight:600; }
+.muted { color:var(--muted); }
+button, input[type=number], input[type=text] { font:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:6px 10px; }
+button { cursor:pointer; }
+button.primary { border-color:var(--accent); color:var(--accent); font-weight:600; }
+input[type=number] { width:110px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:12px; }
+.state { font-weight:600; }
+.state.dead { color:var(--accent); }
+.state.live { color:var(--ok); }
+table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+th, td { text-align:right; padding:4px 6px; border-bottom:1px solid var(--line); }
+th:first-child, td:first-child { text-align:left; }
+td button { padding:2px 8px; }
+kbd { background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:0 5px; font:13px ui-monospace, Consolas, monospace; }
+ul { margin:6px 0 0; padding-left:18px; }
+.list { max-height:46vh; overflow:auto; }
+</style>
+</head>
+<body>
+<main>
+  <section>
+    <h1>Marcar paradas (vivo / parado)</h1>
+    <div class="bar">
+      <input type="file" id="file" accept="video/*">
+      <span class="muted">El vídeo se lee desde tu disco; no se sube a ningún sitio.</span>
+    </div>
+    <video id="v" preload="metadata"></video>
+    <div class="bar">
+      <span class="read">frame <span id="frame">–</span></span>
+      <span class="muted" id="time">–</span>
+      <span class="muted">velocidad <span id="rate">1</span>×</span>
+      <span class="state live" id="state">balón en juego</span>
+    </div>
+    <div class="bar">
+      <button class="primary" id="bStart">Empieza la parada (S)</button>
+      <button class="primary" id="bEnd">Vuelve el juego (E)</button>
+      <button id="bUndo">Deshacer (Z)</button>
+      <span class="muted">Ir al frame</span>
+      <input type="number" id="goto" min="0" step="1">
+      <button id="bGo">Ir</button>
+    </div>
+    <div class="bar">
+      <span class="muted">Ventanas:</span>
+      <button data-w="W0" data-a="11185" data-b="18684">W0 pública (11185–18684)</button>
+      <button data-w="W1" data-a="56185" data-b="63684">W1 1ª mitad, min 30–35</button>
+      <button data-w="W2" data-a="158742" data-b="166241">W2 2ª mitad, min 30–35</button>
+    </div>
+  </section>
+  <aside>
+    <div class="card">
+      <strong>Ventana <span id="wname">W0</span></strong>
+      <div class="muted">frames <span id="wrange">11185–18684</span></div>
+      <div class="bar">
+        <button id="bCsv">Descargar CSV</button>
+        <button id="bClear">Vaciar ventana</button>
+      </div>
+      <div class="list">
+        <table>
+          <thead><tr><th>#</th><th>inicio</th><th>fin</th><th>s</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <strong>Criterio</strong>
+      <ul>
+        <li>La parada <b>empieza</b> en el primer frame en que el balón sale o el árbitro detiene el juego.</li>
+        <li><b>Termina</b> en el primer frame del saque (el balón vuelve a moverse en juego).</li>
+        <li>Etiqueta primero W0 sin mirar la referencia y compárala con el script.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <strong>Teclas</strong>
+      <ul>
+        <li><kbd>espacio</kbd> reproducir / pausar</li>
+        <li><kbd>←</kbd> <kbd>→</kbd> un frame · con <kbd>Mayús</kbd>, un segundo</li>
+        <li><kbd>[</kbd> <kbd>]</kbd> velocidad</li>
+        <li><kbd>S</kbd> empieza la parada · <kbd>E</kbd> vuelve el juego · <kbd>Z</kbd> deshacer</li>
+      </ul>
+    </div>
+  </aside>
+</main>
+<script>
+const FPS = 25;
+const v = document.getElementById("v");
+const $ = id => document.getElementById(id);
+const RATES = [0.25, 0.5, 1, 1.5, 2, 3, 4];
+let win = { name: "W0", a: 11185, b: 18684 };
+let spans = [];       // [start, end] pairs, end exclusive (first frame back in play)
+let open = null;      // start frame of a stoppage waiting for its end
+
+// frame i is on screen during [i / FPS, (i + 1) / FPS): truncate, do not round
+const frameNow = () => Math.floor(v.currentTime * FPS + 1e-6);
+const key = () => "stoppages_" + win.name;
+function save() { try { localStorage.setItem(key(), JSON.stringify({ spans, open })); } catch (e) {} }
+function load() {
+  spans = []; open = null;
+  try { const s = JSON.parse(localStorage.getItem(key()) || "null"); if (s) { spans = s.spans || []; open = s.open ?? null; } } catch (e) {}
+}
+function seekFrame(f) { v.currentTime = Math.max(0, (f + 0.5) / FPS); }
+function fmt(t) { const m = Math.floor(t / 60), s = (t % 60).toFixed(2).padStart(5, "0"); return m + ":" + s; }
+
+function render() {
+  const f = frameNow();
+  $("frame").textContent = isFinite(f) ? f : "–";
+  $("time").textContent = isFinite(v.currentTime) ? fmt(v.currentTime) : "–";
+  $("rate").textContent = v.playbackRate;
+  const dead = open !== null && f >= open || spans.some(([a, b]) => f >= a && f < b);
+  const st = $("state");
+  st.textContent = open !== null ? "parada abierta desde " + open : (dead ? "balón parado" : "balón en juego");
+  st.className = "state " + (dead ? "dead" : "live");
+}
+function table() {
+  spans.sort((x, y) => x[0] - y[0]);
+  const tb = $("rows"); tb.textContent = "";
+  spans.forEach(([a, b], i) => {
+    const tr = document.createElement("tr");
+    const cells = [i + 1, a, b, ((b - a) / FPS).toFixed(1)];
+    cells.forEach((c, j) => {
+      const td = document.createElement("td"); td.textContent = c;
+      if (j === 1 || j === 2) { td.style.cursor = "pointer"; td.title = "ir a este frame"; td.onclick = () => seekFrame(c); }
+      tr.appendChild(td);
+    });
+    const td = document.createElement("td"); const bt = document.createElement("button");
+    bt.textContent = "×"; bt.title = "borrar"; bt.onclick = () => { spans.splice(i, 1); save(); table(); render(); };
+    td.appendChild(bt); tr.appendChild(td); tb.appendChild(tr);
+  });
+  $("wname").textContent = win.name; $("wrange").textContent = win.a + "–" + win.b;
+}
+function markStart() { open = frameNow(); save(); render(); }
+function markEnd() {
+  const f = frameNow();
+  if (open === null || f <= open) return;
+  spans.push([open, f]); open = null; save(); table(); render();
+}
+function undo() { if (open !== null) open = null; else spans.pop(); save(); table(); render(); }
+function setWindow(name, a, b) { win = { name, a, b }; load(); table(); if (v.src) seekFrame(a); render(); }
+function download() {
+  const rows = ["start_frame,end_frame"].concat(spans.map(([a, b]) => a + "," + b)).join("\n") + "\n";
+  const url = URL.createObjectURL(new Blob([rows], { type: "text/csv" }));
+  const a = document.createElement("a"); a.href = url; a.download = "stoppages_" + win.name + ".csv";
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+$("file").onchange = e => { const f = e.target.files[0]; if (f) { v.src = URL.createObjectURL(f); v.onloadedmetadata = () => seekFrame(win.a); } };
+$("bStart").onclick = markStart; $("bEnd").onclick = markEnd; $("bUndo").onclick = undo; $("bCsv").onclick = download;
+$("bClear").onclick = () => { if (confirm("¿Vaciar las paradas de " + win.name + "?")) { spans = []; open = null; save(); table(); render(); } };
+$("bGo").onclick = () => { const f = parseInt($("goto").value, 10); if (isFinite(f)) seekFrame(f); };
+document.querySelectorAll("button[data-w]").forEach(b => b.onclick = () => setWindow(b.dataset.w, +b.dataset.a, +b.dataset.b));
+["timeupdate", "seeked", "ratechange", "play", "pause"].forEach(ev => v.addEventListener(ev, render));
+(function tick() { if (!v.paused) render(); requestAnimationFrame(tick); })();
+
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  const step = e.shiftKey ? 1 : 1 / FPS;
+  if (e.code === "Space") { e.preventDefault(); v.paused ? v.play() : v.pause(); }
+  else if (e.key === "ArrowRight") { e.preventDefault(); v.pause(); v.currentTime += step; }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); v.pause(); v.currentTime = Math.max(0, v.currentTime - step); }
+  else if (e.key === "]") { v.playbackRate = RATES[Math.min(RATES.indexOf(v.playbackRate) + 1, RATES.length - 1)] || 1; }
+  else if (e.key === "[") { v.playbackRate = RATES[Math.max(RATES.indexOf(v.playbackRate) - 1, 0)] || 1; }
+  else if (e.key === "s" || e.key === "S") markStart();
+  else if (e.key === "e" || e.key === "E") markEnd();
+  else if (e.key === "z" || e.key === "Z") undo();
+});
+load(); table(); render();
+</script>
+</body>
+</html>

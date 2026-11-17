@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" width="900" height="720" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif">
+  <title>Sistema de posesión: vista completa</title>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a4a46"/>
+    </marker>
+    <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1393f"/>
+    </marker>
+    <style>
+      .band { stroke: #d9d7cf; stroke-width: 1; }
+      .bt { font-size: 13px; font-weight: 700; fill: #3b3b37; }
+      .box { fill: #ffffff; stroke: #8f8d85; stroke-width: 1.2; }
+      .key { fill: #ffffff; stroke: #a1393f; stroke-width: 1.8; }
+      .h { font-size: 14px; font-weight: 700; fill: #1d1d1b; }
+      .s { font-size: 12px; fill: #4a4a46; }
+      .lab { font-size: 11.5px; fill: #4a4a46; }
+      .edge { stroke: #4a4a46; stroke-width: 1.5; fill: none; marker-end: url(#ar); }
+      .dash { stroke: #4a4a46; stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; marker-end: url(#ar); }
+      .red { stroke: #a1393f; stroke-width: 1.8; fill: none; marker-end: url(#arR); }
+      .chip { fill: #f4efe6; stroke: #c9b99a; }
+    </style>
+  </defs>
+  <rect width="900" height="720" fill="#ffffff"/>
+
+  <!-- bands -->
+  <rect class="band" x="10" y="10" width="880" height="92" rx="10" fill="#f6f6f3"/>
+  <text class="bt" x="24" y="32">Datos del reto</text>
+  <rect class="band" x="10" y="114" width="880" height="178" rx="10" fill="#f3f5f8"/>
+  <text class="bt" x="24" y="136">1 · Preparación — reglas y geometría</text>
+  <rect class="band" x="10" y="304" width="880" height="122" rx="10" fill="#f8f3f3"/>
+  <text class="bt" x="24" y="326">2 · Detector neuronal (solo detecta)</text>
+  <rect class="band" x="10" y="438" width="880" height="158" rx="10" fill="#f3f7f3"/>
+  <text class="bt" x="24" y="460">3 · Máquina de Markov (decide)</text>
+  <rect class="band" x="10" y="608" width="880" height="102" rx="10" fill="#f6f4f8"/>
+  <text class="bt" x="24" y="630">4 · Reglas finales y salida</text>
+
+  <!-- data -->
+  <rect class="box" x="200" y="42" width="280" height="46" rx="7"/>
+  <text class="h" x="340" y="61" text-anchor="middle">Tracking ATD</text>
+  <text class="s" x="340" y="78" text-anchor="middle">22 jugadores + balón · 25 Hz · balón falta el 41 %</text>
+  <rect class="box" x="560" y="42" width="260" height="46" rx="7"/>
+  <text class="h" x="690" y="61" text-anchor="middle">Smart Tagging</text>
+  <text class="s" x="690" y="78" text-anchor="middle">SET PIECES · GOALS</text>
+
+  <!-- prep -->
+  <rect class="box" x="200" y="146" width="280" height="52" rx="7"/>
+  <text class="h" x="340" y="166" text-anchor="middle">frames.py</text>
+  <text class="s" x="340" y="184" text-anchor="middle">metros · H ataca +x · velocidades · visibilidad</text>
+  <rect class="box" x="560" y="146" width="260" height="52" rx="7"/>
+  <text class="h" x="690" y="166" text-anchor="middle">events.py</text>
+  <text class="s" x="690" y="184" text-anchor="middle">paradas · reinicios · quién reinicia</text>
+  <rect class="box" x="60" y="228" width="260" height="52" rx="7"/>
+  <text class="h" x="190" y="248" text-anchor="middle">proxy.py</text>
+  <text class="s" x="190" y="266" text-anchor="middle">toques → dueño por último toque</text>
+  <rect class="box" x="400" y="228" width="260" height="52" rx="7"/>
+  <text class="h" x="530" y="248" text-anchor="middle">features.py</text>
+  <text class="s" x="530" y="266" text-anchor="middle">pasos de 5 Hz · 30 tokens + balón + huecos</text>
+
+  <path class="edge" d="M340,88 V146"/>
+  <path class="edge" d="M690,88 V146"/>
+  <path class="edge" d="M480,172 H560"/>
+  <path class="edge" d="M270,198 L215,228"/>
+  <path class="edge" d="M410,198 L470,228"/>
+  <path class="edge" d="M320,254 H400"/>
+  <text class="lab" x="360" y="248" text-anchor="middle">etiquetas</text>
+
+  <!-- network -->
+  <rect class="key" x="200" y="344" width="280" height="62" rx="8"/>
+  <text class="h" x="340" y="366" text-anchor="middle">PossNet × 12</text>
+  <text class="s" x="340" y="383" text-anchor="middle">set encoder + transformer temporal</text>
+  <text class="s" x="340" y="398" text-anchor="middle">4 folds × 3 semillas · autoentrenada (st1)</text>
+  <rect class="box" x="560" y="344" width="260" height="62" rx="8"/>
+  <text class="h" x="690" y="366" text-anchor="middle">Ensemble fuera de fold</text>
+  <text class="s" x="690" y="383" text-anchor="middle">cada paso: solo modelos que no lo vieron</text>
+  <text class="s" x="690" y="398" text-anchor="middle">→ q(H|t) · border(t)</text>
+  <path class="edge" d="M500,280 L400,344"/>
+  <path class="edge" d="M480,375 H560"/>
+
+  <!-- machine -->
+  <rect class="box" x="40" y="474" width="440" height="104" rx="8"/>
+  <text class="h" x="260" y="494" text-anchor="middle">Sensores con ruido (sensors.py)</text>
+  <rect class="chip" x="56" y="505" width="94" height="30" rx="6"/>
+  <text class="s" x="103" y="524" text-anchor="middle">net_vis</text>
+  <rect class="chip" x="160" y="505" width="94" height="30" rx="6"/>
+  <text class="s" x="207" y="524" text-anchor="middle">net_hid</text>
+  <rect class="chip" x="264" y="505" width="94" height="30" rx="6"/>
+  <text class="s" x="311" y="524" text-anchor="middle">touch</text>
+  <rect class="chip" x="368" y="505" width="98" height="30" rx="6"/>
+  <text class="s" x="417" y="524" text-anchor="middle">dead_rule</text>
+  <text class="s" x="260" y="556" text-anchor="middle">P(símbolo | H/A/D) acotada: ratio H/A ≤ 4 · simétrica</text>
+  <text class="s" x="260" y="571" text-anchor="middle">fiabilidad aprendida por EM sobre el partido (nunca con el GT)</text>
+
+  <rect class="key" x="560" y="474" width="260" height="104" rx="8"/>
+  <text class="h" x="690" y="494" text-anchor="middle">HSMM · 15 estados</text>
+  <text class="s" x="690" y="514" text-anchor="middle">posesión H / A (4 fases cada una)</text>
+  <text class="s" x="690" y="530" text-anchor="middle">parada corta / larga · PRE</text>
+  <text class="s" x="690" y="550" text-anchor="middle">forward–backward · EM ×3</text>
+  <text class="s" x="690" y="566" text-anchor="middle">Viterbi → H / A / D + posterior</text>
+
+  <path class="edge" d="M600,406 L330,474"/>
+  <text class="lab" x="440" y="434" text-anchor="middle">q(H|t)</text>
+  <path class="dash" d="M720,406 V474"/>
+  <text class="lab" x="712" y="446" text-anchor="end">border = riesgo de cambio</text>
+  <path class="dash" d="M100,280 V474"/>
+  <text class="lab" x="108" y="400">toques</text>
+  <path class="dash" d="M820,172 H858 V526 H820"/>
+  <text class="lab" x="866" y="350" transform="rotate(90 866 350)" text-anchor="middle">dead · restart · ρ_H (paradas y reinicios)</text>
+  <path class="red" d="M480,526 H560"/>
+  <text class="lab" x="520" y="518" text-anchor="middle">log P</text>
+
+  <!-- final rules -->
+  <rect class="box" x="60" y="642" width="250" height="52" rx="7"/>
+  <text class="h" x="185" y="662" text-anchor="middle">Cambios H↔A +10 frames</text>
+  <text class="s" x="185" y="680" text-anchor="middle">balón disputado = último equipo</text>
+  <rect class="box" x="360" y="642" width="200" height="52" rx="7"/>
+  <text class="h" x="460" y="662" text-anchor="middle">Abstención</text>
+  <text class="s" x="460" y="680" text-anchor="middle">X si posterior &lt; 0,75</text>
+  <rect class="key" x="610" y="642" width="210" height="52" rx="7"/>
+  <text class="h" x="715" y="662" text-anchor="middle">CSV frame,label</text>
+  <text class="s" x="715" y="680" text-anchor="middle">199.319 filas · H / A / D / X</text>
+  <path class="edge" d="M690,578 V614 H185 V642"/>
+  <path class="edge" d="M310,668 H360"/>
+  <path class="edge" d="M560,668 H610"/>
+</svg>

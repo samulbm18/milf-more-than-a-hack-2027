@@ -1,0 +1,6 @@
+# Where the challenge repository (data bundle + official evaluator) lives, relative to this repo.
+# Override with the MTAH_ROOT environment variable.
+mtah_root: ../more-than-a-hack-2027
+cache_dir: cache
+runs_dir: runs
+outputs_dir: outputs

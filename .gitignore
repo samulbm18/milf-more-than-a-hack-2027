@@ -1,0 +1,34 @@
+# This repository will be public. The match data, anything derived from it row by row, and every
+# label file must never be committed. When in doubt, add it here first.
+
+# -- data and derived arrays ---------------------------------------------------------------------
+data/
+cache/
+runs/
+outputs/
+*.npy
+*.npz
+*.csv
+*.parquet
+*.pkl
+*.mp4
+*.txt.gz
+*.xml
+
+# -- trained weights are committed deliberately, from models/ only -------------------------------
+*.pt
+!models/**/*.pt
+
+# -- environment and tooling ---------------------------------------------------------------------
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.idea/
+.vscode/
+.DS_Store
+*.egg-info/
+
+# -- technical document: figures are derived from match data, regenerate with docs/paper/make_figures.py
+docs/paper/fig/
+*.zip
