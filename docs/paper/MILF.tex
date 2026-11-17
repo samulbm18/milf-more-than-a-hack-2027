@@ -436,8 +436,8 @@ are part of the repository because GPU training is not deterministic: retraining
 model.
 
 \textbf{Verification.} \code{bash scripts/repro\_check.sh} copies only the files tracked by git into
-an empty directory, rebuilds every cache from the raw data and runs the full pipeline. Run on the
-published repository, it regenerated the submitted file byte for byte (SHA-256 \code{b156296f\ldots7267},
+an empty directory, rebuilds every cache from the raw data and runs the full pipeline. Run on a fresh
+clone of the repository, it regenerated the submitted file byte for byte (SHA-256 \code{b156296f\ldots7267},
 199\,319 rows), with the same public-window scores (spellF1 0.667, macroF1 0.931); the official
 validator accepts the file and the 37 unit tests pass.
 
